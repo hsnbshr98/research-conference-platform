@@ -1,0 +1,505 @@
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">R</div>
+      <div>
+        <h1>Research Conference Platform</h1>
+        <p>Manage researchers, conferences, departments, and papers.</p>
+      </div>
+    </div>
+
+    @if (isLoggedIn()) {
+      <nav class="nav-links">
+        <button
+          [class.active-nav]="activePage === 'dashboard'"
+          (click)="goToPage('dashboard')"
+        >
+          Dashboard
+        </button>
+
+        <button
+          [class.active-nav]="activePage === 'departments'"
+          (click)="goToPage('departments')"
+        >
+          Departments
+        </button>
+
+        <button
+          [class.active-nav]="activePage === 'researchers'"
+          (click)="goToPage('researchers')"
+        >
+          Researchers
+        </button>
+
+        <button
+          [class.active-nav]="activePage === 'conferences'"
+          (click)="goToPage('conferences')"
+        >
+          Conferences
+        </button>
+
+        <button
+          [class.active-nav]="activePage === 'papers'"
+          (click)="goToPage('papers')"
+        >
+          Papers
+        </button>
+
+        <button class="logout-button" (click)="logout()">Logout</button>
+      </nav>
+    }
+  </header>
+
+  <main class="page">
+    @if (!isLoggedIn()) {
+      <section class="card auth-card">
+        <div class="auth-tabs">
+          <button
+            type="button"
+            [class.active-tab]="authMode === 'login'"
+            (click)="showLogin()"
+          >
+            Login
+          </button>
+
+          <button
+            type="button"
+            [class.active-tab]="authMode === 'register'"
+            (click)="showRegister()"
+          >
+            Sign Up
+          </button>
+        </div>
+
+        @if (authMode === 'login') {
+          <h2>Login</h2>
+
+          <label>Username</label>
+          <input
+            type="text"
+            [(ngModel)]="username"
+            placeholder="Enter username"
+          />
+
+          <label>Password</label>
+          <input
+            type="password"
+            [(ngModel)]="password"
+            placeholder="Enter password"
+          />
+
+          <button class="primary-button" (click)="login()">Login</button>
+
+          <div class="result">
+            <h3>Login Result:</h3>
+            <pre>{{ loginMessage }}</pre>
+          </div>
+        }
+
+        @if (authMode === 'register') {
+          <h2>Create Account</h2>
+
+          <label>Username</label>
+          <input
+            type="text"
+            [(ngModel)]="registerUsername"
+            placeholder="Choose a username"
+          />
+
+          <label>Email</label>
+          <input
+            type="email"
+            [(ngModel)]="registerEmail"
+            placeholder="Enter email"
+          />
+
+          <label>First Name</label>
+          <input
+            type="text"
+            [(ngModel)]="registerFirstName"
+            placeholder="Enter first name"
+          />
+
+          <label>Last Name</label>
+          <input
+            type="text"
+            [(ngModel)]="registerLastName"
+            placeholder="Enter last name"
+          />
+
+          <label>Password</label>
+          <input
+            type="password"
+            [(ngModel)]="registerPassword"
+            placeholder="Create password"
+          />
+
+          <label>Confirm Password</label>
+          <input
+            type="password"
+            [(ngModel)]="registerConfirmPassword"
+            placeholder="Confirm password"
+          />
+
+          <button class="primary-button" (click)="register()">
+            Create Account
+          </button>
+
+          <div class="result">
+            <h3>Register Result:</h3>
+            <pre>{{ registerMessage }}</pre>
+          </div>
+        }
+      </section>
+    }
+
+    @if (isLoggedIn()) {
+      @if (activePage === 'dashboard') {
+        <section class="card hero-card">
+          <h2>Welcome to your dashboard</h2>
+          <p>
+            You are logged in successfully. Use the navigation above to manage
+            departments, researchers, conferences, and papers.
+          </p>
+        </section>
+
+        <section class="dashboard-grid">
+          <div class="summary-card" (click)="goToPage('departments')">
+            <h3>Departments</h3>
+            <p>View academic departments.</p>
+          </div>
+
+          <div class="summary-card" (click)="goToPage('researchers')">
+            <h3>Researchers</h3>
+            <p>Browse researcher profiles.</p>
+          </div>
+
+          <div class="summary-card" (click)="goToPage('conferences')">
+            <h3>Conferences</h3>
+            <p>Explore conference information.</p>
+          </div>
+
+          <div class="summary-card" (click)="goToPage('papers')">
+            <h3>Papers</h3>
+            <p>View submitted research papers.</p>
+          </div>
+        </section>
+      }
+
+      @if (activePage === 'departments') {
+        <section class="card">
+          <div class="section-header">
+            <div>
+              <h2>Departments</h2>
+              <p>Load and view departments from the Django backend.</p>
+            </div>
+
+            <button class="primary-button" (click)="loadDepartments()">
+              Load Departments
+            </button>
+          </div>
+
+          <p>{{ departmentsMessage }}</p>
+
+          @if (departments.length > 0) {
+            <div class="department-list">
+              @for (department of departments; track department.id) {
+                <div class="department-card">
+                  <h3>{{ department.name }}</h3>
+                  <p>{{ department.description }}</p>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      @if (activePage === 'researchers') {
+        <section class="card">
+          <div class="section-header">
+            <div>
+              <h2>Researchers</h2>
+              <p>Load and view researcher profiles from the Django backend.</p>
+            </div>
+
+            <button class="primary-button" (click)="loadResearchers()">
+              Load Researchers
+            </button>
+          </div>
+
+          <p>{{ researchersMessage }}</p>
+
+<div class="notice-box">
+  <strong>Note:</strong>
+  Logged-in users can create their own researcher profile. Admins can manage all researcher profiles.
+</div>
+
+<button class="secondary-button" (click)="toggleResearcherForm()">
+  @if (showResearcherForm) {
+    Hide Researcher Form
+  } @else {
+    Create My Researcher Profile
+  }
+</button>
+
+@if (showResearcherForm) {
+  <div class="create-box">
+    <h3>Create Researcher Profile</h3>
+
+            <label>First Name</label>
+            <input
+              type="text"
+              [(ngModel)]="researcherFirstName"
+              placeholder="Enter first name"
+            />
+
+            <label>Last Name</label>
+            <input
+              type="text"
+              [(ngModel)]="researcherLastName"
+              placeholder="Enter last name"
+            />
+
+            <label>Email</label>
+            <input
+              type="email"
+              [(ngModel)]="researcherEmail"
+              placeholder="Enter email"
+            />
+
+            <label>Academic Rank</label>
+            <select [(ngModel)]="researcherAcademicRank">
+              <option value="">Select academic rank</option>
+              <option value="student">Student</option>
+              <option value="lecturer">Lecturer</option>
+              <option value="assistant">Assistant Professor</option>
+              <option value="associate">Associate Professor</option>
+              <option value="professor">Professor</option>
+            </select>
+
+            <label>Department</label>
+            <select [(ngModel)]="researcherDepartment">
+              <option value="">Select department</option>
+
+              @for (department of departments; track department.id) {
+                <option [value]="department.id">
+                  {{ department.name }}
+                </option>
+              }
+            </select>
+
+            <label>Biography</label>
+            <textarea
+              [(ngModel)]="researcherBiography"
+              placeholder="Write a short biography"
+            ></textarea>
+
+            <button class="primary-button" (click)="createResearcherProfile()">
+              Create Researcher Profile
+            </button>
+
+                <button class="secondary-button" (click)="cancelResearcherForm()">
+      Cancel
+    </button>
+
+    <div class="result">
+      <pre>{{ createResearcherMessage }}</pre>
+    </div>
+  </div>
+}
+
+          @if (researchers.length > 0) {
+            <div class="researcher-list">
+              @for (researcher of researchers; track researcher.id) {
+                <div class="researcher-card">
+                  <h3>{{ researcher.first_name }} {{ researcher.last_name }}</h3>
+
+                  <p>
+                    <strong>Email:</strong>
+                    {{ researcher.email }}
+                  </p>
+
+                  <p>
+                    <strong>Academic Rank:</strong>
+                    {{ researcher.academic_rank || 'Not provided' }}
+                  </p>
+
+                  <p>
+                    <strong>Department:</strong>
+                    {{ getDepartmentName(researcher.department) }}
+                  </p>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      @if (activePage === 'conferences') {
+        <section class="card">
+          <div class="section-header">
+            <div>
+              <h2>Conferences</h2>
+              <p>Load and view conferences from the Django backend.</p>
+            </div>
+
+            <button class="primary-button" (click)="loadConferences()">
+              Load Conferences
+            </button>
+          </div>
+
+          <p>{{ conferencesMessage }}</p>
+
+          @if (conferences.length > 0) {
+            <div class="conference-list">
+              @for (conference of conferences; track conference.id) {
+                <div class="conference-card">
+                  <h3>{{ conference.name }}</h3>
+
+                  <p>
+                    <strong>Location:</strong>
+                    {{ conference.location || 'Not provided' }}
+                  </p>
+
+                  <p>
+                    <strong>Start Date:</strong>
+                    {{ conference.start_date || 'Not provided' }}
+                  </p>
+
+                  <p>
+                    <strong>End Date:</strong>
+                    {{ conference.end_date || 'Not provided' }}
+                  </p>
+
+                  <p>
+                    <strong>Description:</strong>
+                    {{ conference.description || 'No description available.' }}
+                  </p>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      @if (activePage === 'papers') {
+        <section class="card">
+          <div class="section-header">
+            <div>
+              <h2>Papers</h2>
+              <p>Load, view, and create submitted research papers.</p>
+            </div>
+
+            <button class="primary-button" (click)="loadPapers()">
+              Load Papers
+            </button>
+          </div>
+
+          <p>{{ papersMessage }}</p>
+
+          <div class="create-box">
+            <h3>Create Paper</h3>
+
+            <label>Title</label>
+            <input
+              type="text"
+              [(ngModel)]="paperTitle"
+              placeholder="Enter paper title"
+            />
+
+            <label>Abstract</label>
+            <textarea
+              [(ngModel)]="paperAbstract"
+              placeholder="Write the paper abstract"
+            ></textarea>
+
+            <label>Keywords</label>
+            <input
+              type="text"
+              [(ngModel)]="paperKeywords"
+              placeholder="Example: AI, Django, Research"
+            />
+            <label>Corresponding Email</label>
+<input
+  type="email"
+  [(ngModel)]="paperCorrespondingEmail"
+  placeholder="Enter corresponding author email"
+/>
+
+            <label>Conference</label>
+            <select [(ngModel)]="paperConference">
+              <option value="">Select conference</option>
+
+              @for (conference of conferences; track conference.id) {
+                <option [value]="conference.id">
+                  {{ conference.name }}
+                </option>
+              }
+            </select>
+
+            <label>Publication Date</label>
+            <input
+              type="date"
+              [(ngModel)]="paperPublicationDate"
+            />
+
+            <label>Status</label>
+            <select [(ngModel)]="paperStatus">
+              <option value="draft">Draft</option>
+              <option value="submitted">Submitted</option>
+              <option value="accepted">Accepted</option>
+              <option value="rejected">Rejected</option>
+            </select>
+
+            <button class="primary-button" (click)="createPaper()">
+              Create Paper
+            </button>
+
+            <div class="result">
+              <pre>{{ createPaperMessage }}</pre>
+            </div>
+          </div>
+
+          @if (papers.length > 0) {
+            <div class="paper-list">
+              @for (paper of papers; track paper.id) {
+                <div class="paper-card">
+                  <h3>{{ paper.title }}</h3>
+
+                  <p>
+                    <strong>Abstract:</strong>
+                    {{ paper.abstract || 'No abstract available.' }}
+                  </p>
+
+                  <p>
+                    <strong>Keywords:</strong>
+                    {{ paper.keywords || 'Not provided' }}
+                  </p>
+
+                  <p>
+                    <strong>Status:</strong>
+                    {{ paper.status || 'Not provided' }}
+                  </p>
+
+                  <p>
+                    <strong>Publication Date:</strong>
+                    {{ paper.publication_date || 'Not provided' }}
+                  </p>
+
+                  <p>
+                    <strong>Conference:</strong>
+                    {{ getConferenceName(paper.conference) }}
+                  </p>
+                  <div class="result">
+  <strong>Raw paper data for testing:</strong>
+  <pre>{{ paper | json }}</pre>
+</div>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+    }
+  </main>
+</div>
