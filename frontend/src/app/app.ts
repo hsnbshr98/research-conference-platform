@@ -36,6 +36,7 @@ export class App {
 
   departments: any[] = [];
   departmentsMessage = 'Click the button to load departments.';
+  departmentSearch = '';
   departmentName = '';
   departmentCode = '';
   departmentDescription = '';
@@ -56,6 +57,9 @@ export class App {
   editingResearcherId: number | null = null;
   researcherFormMessage = 'Fill the form to create your researcher profile.';
   showResearcherForm = false;
+  researcherSearch = '';
+  researcherRankFilter = '';
+  researcherDepartmentFilter = '';
 
   conferences: any[] = [];
   conferencesMessage = 'Click the button to load conferences.';
@@ -63,6 +67,7 @@ export class App {
   conferenceLocation = '';
   conferenceStartDate = '';
   conferenceEndDate = '';
+  conferenceSearch = '';
   conferenceDescription = '';
   editingConferenceId: number | null = null;
   conferenceFormMessage = 'Admins can create, update, and delete conferences.';
@@ -82,6 +87,9 @@ export class App {
   paperPdfFile: File | null = null;
   paperFormMessage = 'Fill the form to create a paper.';
   showPaperForm = false;
+  paperSearch = '';
+  paperStatusFilter = '';
+  paperConferenceFilter = '';
 
   constructor(private apiService: ApiService) {}
 
@@ -863,6 +871,106 @@ export class App {
       || String(item.username || '') === currentUsername
       || String(item.email || '') === currentEmail
       || String(item.user_id || '') === currentUserId;
+  }
+
+  get filteredDepartments(): any[] {
+    const search = this.departmentSearch.toLowerCase().trim();
+
+    if (!search) {
+      return this.departments;
+    }
+
+    return this.departments.filter((department) => {
+      return (
+        String(department.name || '').toLowerCase().includes(search) ||
+        String(department.code || '').toLowerCase().includes(search) ||
+        String(department.description || '').toLowerCase().includes(search) ||
+        String(department.contact_email || '').toLowerCase().includes(search)
+      );
+    });
+  }
+
+  get filteredResearchers(): any[] {
+    const search = this.researcherSearch.toLowerCase().trim();
+
+    return this.researchers.filter((researcher) => {
+      const rank = String(researcher.academic_rank || researcher.rank || '');
+      const departmentId = String(this.extractId(researcher.department));
+
+      const matchesSearch =
+        !search ||
+        String(researcher.first_name || '').toLowerCase().includes(search) ||
+        String(researcher.last_name || '').toLowerCase().includes(search) ||
+        String(researcher.email || '').toLowerCase().includes(search) ||
+        String(researcher.biography || researcher.bio || '').toLowerCase().includes(search) ||
+        String(this.getDepartmentName(researcher.department) || '').toLowerCase().includes(search);
+
+      const matchesRank =
+        !this.researcherRankFilter ||
+        rank === this.researcherRankFilter;
+
+      const matchesDepartment =
+        !this.researcherDepartmentFilter ||
+        departmentId === String(this.researcherDepartmentFilter);
+
+      return matchesSearch && matchesRank && matchesDepartment;
+    });
+  }
+
+  get filteredConferences(): any[] {
+    const search = this.conferenceSearch.toLowerCase().trim();
+
+    if (!search) {
+      return this.conferences;
+    }
+
+    return this.conferences.filter((conference) => {
+      return (
+        String(conference.name || '').toLowerCase().includes(search) ||
+        String(conference.location || '').toLowerCase().includes(search) ||
+        String(conference.description || '').toLowerCase().includes(search) ||
+        String(conference.contact_email || '').toLowerCase().includes(search)
+      );
+    });
+  }
+
+  getAcademicRankLabel(rank: string): string {
+    const ranks: any = {
+      student: 'Graduate Student',
+      lecturer: 'Lecturer',
+      assistant: 'Assistant Professor',
+      associate: 'Associate Professor',
+      professor: 'Professor'
+    };
+
+    return ranks[rank] || rank || 'Not provided';
+  }
+
+  get filteredPapers(): any[] {
+    const search = this.paperSearch.toLowerCase().trim();
+
+    return this.papers.filter((paper) => {
+      const conferenceId = String(this.extractId(paper.conference));
+
+      const matchesSearch =
+        !search ||
+        String(paper.title || '').toLowerCase().includes(search) ||
+        String(paper.abstract || '').toLowerCase().includes(search) ||
+        String(paper.keywords || '').toLowerCase().includes(search) ||
+        String(paper.corresponding_email || '').toLowerCase().includes(search) ||
+        String(paper.status || '').toLowerCase().includes(search) ||
+        String(this.getConferenceName(paper.conference) || '').toLowerCase().includes(search);
+
+      const matchesStatus =
+        !this.paperStatusFilter ||
+        String(paper.status || '') === this.paperStatusFilter;
+
+      const matchesConference =
+        !this.paperConferenceFilter ||
+        conferenceId === String(this.paperConferenceFilter);
+
+      return matchesSearch && matchesStatus && matchesConference;
+    });
   }
 
   private formatError(error: any): string {

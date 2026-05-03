@@ -324,6 +324,18 @@ pre {
   color: #3b252a;
 }
 
+.filter-box {
+  margin: 20px 0;
+  padding: 18px;
+  background: white;
+  border: 1px solid #ead6da;
+  border-radius: 14px;
+}
+
+.filter-box label:first-child {
+  margin-top: 0;
+}
+
 .button-row,
 .action-row {
   display: flex;

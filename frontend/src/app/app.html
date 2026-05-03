@@ -161,6 +161,11 @@
 
           <p>{{ departmentsMessage }}</p>
 
+          <div class="filter-box">
+            <label>Search Departments</label>
+            <input type="text" [(ngModel)]="departmentSearch" placeholder="Search by name, code, description, or email" />
+          </div>
+
           @if (isAdmin()) {
             <div class="notice-box"><strong>Admin:</strong> You can create, update, and delete departments.</div>
             <button class="secondary-button" (click)="toggleDepartmentForm()">
@@ -192,11 +197,12 @@
             }
           }
 
-          @if (departments.length > 0) {
+          @if (filteredDepartments.length > 0) {
             <div class="department-list">
-              @for (department of departments; track department.id) {
+              @for (department of filteredDepartments; track department.id) {
                 <div class="department-card">
                   <h3>{{ department.name }}</h3>
+                  <p><strong>Code:</strong> {{ department.code || 'No code provided.' }}</p>
                   <p>{{ department.description || 'No description available.' }}</p>
 
                   @if (isAdmin()) {
@@ -223,6 +229,33 @@
           </div>
 
           <p>{{ researchersMessage }}</p>
+
+          <div class="filter-box">
+            <label>Search Researchers</label>
+            <input
+              type="text"
+              [(ngModel)]="researcherSearch"
+              placeholder="Search by name, email, biography, or department"
+            />
+
+            <label>Filter by Academic Rank</label>
+            <select [(ngModel)]="researcherRankFilter">
+              <option value="">All ranks</option>
+              <option value="student">Graduate Student</option>
+              <option value="lecturer">Lecturer</option>
+              <option value="assistant">Assistant Professor</option>
+              <option value="associate">Associate Professor</option>
+              <option value="professor">Professor</option>
+            </select>
+
+            <label>Filter by Department</label>
+            <select [(ngModel)]="researcherDepartmentFilter">
+              <option value="">All departments</option>
+              @for (department of departments; track department.id) {
+                <option [value]="department.id">{{ department.name }}</option>
+              }
+            </select>
+          </div>
 
           <div class="notice-box">
             <strong>Note:</strong> Logged-in users can create and manage their own researcher profile. Admins can manage all researcher profiles.
@@ -297,13 +330,13 @@
             </div>
           }
 
-          @if (researchers.length > 0) {
+          @if (filteredResearchers.length > 0) {
             <div class="researcher-list">
-              @for (researcher of researchers; track researcher.id) {
+              @for (researcher of filteredResearchers; track researcher.id) {
                 <div class="researcher-card">
                   <h3>{{ researcher.first_name }} {{ researcher.last_name }}</h3>
                   <p><strong>Email:</strong> {{ researcher.email }}</p>
-                  <p><strong>Academic Rank:</strong> {{ researcher.academic_rank || 'Not provided' }}</p>
+                  <p><strong>Academic Rank:</strong> {{ getAcademicRankLabel(researcher.academic_rank) }}</p>
                   <p><strong>Department:</strong> {{ getDepartmentName(researcher.department) }}</p>
                   <p><strong>Biography:</strong> {{ researcher.biography || 'No biography available.' }}</p>
 
@@ -331,6 +364,15 @@
           </div>
 
           <p>{{ conferencesMessage }}</p>
+
+          <div class="filter-box">
+            <label>Search Conferences</label>
+            <input
+              type="text"
+              [(ngModel)]="conferenceSearch"
+              placeholder="Search by name, location, description, or email"
+            />
+          </div>
 
           @if (isAdmin()) {
             <div class="notice-box"><strong>Admin:</strong> You can create, update, and delete conferences.</div>
@@ -369,9 +411,9 @@
             }
           }
 
-          @if (conferences.length > 0) {
+          @if (filteredConferences.length > 0) {
             <div class="conference-list">
-              @for (conference of conferences; track conference.id) {
+              @for (conference of filteredConferences; track conference.id) {
                 <div class="conference-card">
                   <h3>{{ conference.name }}</h3>
                   <p><strong>Location:</strong> {{ conference.location || 'Not provided' }}</p>
@@ -413,6 +455,32 @@
           </div>
 
           <p>{{ papersMessage }}</p>
+
+          <div class="filter-box">
+            <label>Search Papers</label>
+            <input
+              type="text"
+              [(ngModel)]="paperSearch"
+              placeholder="Search by title, abstract, keywords, email, status, or conference"
+            />
+
+            <label>Filter by Status</label>
+            <select [(ngModel)]="paperStatusFilter">
+              <option value="">All statuses</option>
+              <option value="draft">Draft</option>
+              <option value="submitted">Submitted</option>
+              <option value="accepted">Accepted</option>
+              <option value="rejected">Rejected</option>
+            </select>
+
+            <label>Filter by Conference</label>
+            <select [(ngModel)]="paperConferenceFilter">
+              <option value="">All conferences</option>
+              @for (conference of conferences; track conference.id) {
+                <option [value]="conference.id">{{ conference.name }}</option>
+              }
+            </select>
+          </div>
 
           <div class="notice-box">
             <strong>Note:</strong> Authors can manage their own papers. Admins can manage all papers.
@@ -482,9 +550,9 @@
             </div>
           }
 
-          @if (papers.length > 0) {
+          @if (filteredPapers.length > 0) {
             <div class="paper-list">
-              @for (paper of papers; track paper.id) {
+              @for (paper of filteredPapers; track paper.id) {
                 <div class="paper-card">
                   <h3>{{ paper.title }}</h3>
                   <p><strong>Abstract:</strong> {{ paper.abstract || 'No abstract available.' }}</p>
