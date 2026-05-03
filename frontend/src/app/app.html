@@ -379,12 +379,22 @@
                   <p><strong>End Date:</strong> {{ conference.end_date || 'Not provided' }}</p>
                   <p><strong>Description:</strong> {{ conference.description || 'No description available.' }}</p>
 
-                  @if (isAdmin()) {
-                    <div class="action-row">
+                  <div class="action-row">
+                    @if (isCurrentUserAttendingConference(conference)) {
+                      <button class="small-button danger-button" (click)="leaveConference(conference)">
+                        Leave Conference
+                      </button>
+                    } @else if (!hasCurrentUserConferenceAttendance()) {
+                      <button class="small-button" (click)="attendConference(conference)">
+                        Attend Conference
+                      </button>
+                    }
+
+                    @if (isAdmin()) {
                       <button class="small-button" (click)="editConference(conference)">Edit</button>
                       <button class="small-button danger-button" (click)="deleteConference(conference)">Delete</button>
-                    </div>
-                  }
+                    }
+                  </div>
                 </div>
               }
             </div>

@@ -123,8 +123,14 @@ export class App {
       }
     }
 
-    if (page === 'conferences' && this.conferences.length === 0) {
-      this.loadConferences();
+    if (page === 'conferences') {
+      if (this.researchers.length === 0) {
+        this.loadResearchers();
+      }
+
+      if (this.conferences.length === 0) {
+        this.loadConferences();
+      }
     }
 
     if (page === 'papers') {
@@ -544,6 +550,55 @@ export class App {
     }
   }
 
+  attendConference(conference: any) {
+    this.apiService.attendConference(conference.id).subscribe({
+      next: (response) => {
+        this.conferencesMessage = response.message || 'You are now attending this conference.';
+        this.loadConferences();
+      },
+      error: (error) => {
+        this.conferencesMessage = 'Error attending conference:\n' + this.formatError(error);
+      }
+    });
+  }
+
+  leaveConference(conference: any) {
+    this.apiService.leaveConference(conference.id).subscribe({
+      next: (response) => {
+        this.conferencesMessage = response.message || 'You have left this conference.';
+        this.loadConferences();
+      },
+      error: (error) => {
+        this.conferencesMessage = 'Error leaving conference:\n' + this.formatError(error);
+      }
+    });
+  }
+
+  isCurrentUserAttendingConference(conference: any): boolean {
+    const currentResearcher = this.getCurrentUserResearcher();
+
+    if (!currentResearcher) {
+      return false;
+    }
+
+    const attendees = conference?.attendees || [];
+    const attendeeList = Array.isArray(attendees) ? attendees : [attendees];
+
+    return attendeeList.some((attendee) => {
+      const attendeeId = typeof attendee === 'object'
+        ? String(attendee.id || '')
+        : String(attendee);
+
+      return attendeeId === String(currentResearcher.id);
+    });
+  }
+
+  hasCurrentUserConferenceAttendance(): boolean {
+    return this.conferences.some((conference) =>
+      this.isCurrentUserAttendingConference(conference)
+    );
+  }
+
   loadPapers() {
     this.apiService.getPapers().subscribe({
       next: (response) => {
@@ -698,7 +753,7 @@ export class App {
     });
   }
 
-  private getCurrentUserResearcher(): any {
+  getCurrentUserResearcher(): any {
     if (!this.currentUser) {
       return null;
     }

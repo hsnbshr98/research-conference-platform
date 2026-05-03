@@ -105,6 +105,18 @@ export class ApiService {
     });
   }
 
+  attendConference(id: number): Observable<any> {
+    return this.http.post(`${this.baseUrl}/conferences/${id}/attend/`, {}, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  leaveConference(id: number): Observable<any> {
+    return this.http.post(`${this.baseUrl}/conferences/${id}/leave/`, {}, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
   getPapers(): Observable<any> {
     return this.http.get(`${this.baseUrl}/papers/`, {
       headers: this.getAuthHeaders()
