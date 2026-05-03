@@ -166,7 +166,7 @@ The platform is built using a **REST API**, allowing:
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-link>
+git clone <[repo-link](https://github.com/hsnbshr98/research-conference-platform)>
 cd research-conference-platform
 ```
 
@@ -175,13 +175,13 @@ cd research-conference-platform
 ### 2. Create virtual environment
 
 ```bash
-python -m venv .venv
+python -m venv venv
 ```
 
 Activate:
 
 ```bash
-.venv\Scripts\activate   # Windows
+venv\Scripts\activate   # Windows
 ```
 
 ---
