@@ -10,41 +10,16 @@
 
     @if (isLoggedIn()) {
       <nav class="nav-links">
-        <button
-          [class.active-nav]="activePage === 'dashboard'"
-          (click)="goToPage('dashboard')"
-        >
-          Dashboard
-        </button>
+        <button [class.active-nav]="activePage === 'dashboard'" (click)="goToPage('dashboard')">Dashboard</button>
 
-        <button
-          [class.active-nav]="activePage === 'departments'"
-          (click)="goToPage('departments')"
-        >
-          Departments
-        </button>
+        @if (isAdmin()) {
+          <button [class.active-nav]="activePage === 'admin'" (click)="goToPage('admin')">Admin</button>
+        }
 
-        <button
-          [class.active-nav]="activePage === 'researchers'"
-          (click)="goToPage('researchers')"
-        >
-          Researchers
-        </button>
-
-        <button
-          [class.active-nav]="activePage === 'conferences'"
-          (click)="goToPage('conferences')"
-        >
-          Conferences
-        </button>
-
-        <button
-          [class.active-nav]="activePage === 'papers'"
-          (click)="goToPage('papers')"
-        >
-          Papers
-        </button>
-
+        <button [class.active-nav]="activePage === 'departments'" (click)="goToPage('departments')">Departments</button>
+        <button [class.active-nav]="activePage === 'researchers'" (click)="goToPage('researchers')">Researchers</button>
+        <button [class.active-nav]="activePage === 'conferences'" (click)="goToPage('conferences')">Conferences</button>
+        <button [class.active-nav]="activePage === 'papers'" (click)="goToPage('papers')">Papers</button>
         <button class="logout-button" (click)="logout()">Logout</button>
       </nav>
     }
@@ -53,42 +28,20 @@
   <main class="page">
     @if (!isLoggedIn()) {
       <section class="card auth-card">
-        <div class="auth-tabs">
-          <button
-            type="button"
-            [class.active-tab]="authMode === 'login'"
-            (click)="showLogin()"
-          >
-            Login
-          </button>
-
-          <button
-            type="button"
-            [class.active-tab]="authMode === 'register'"
-            (click)="showRegister()"
-          >
-            Sign Up
-          </button>
-        </div>
 
         @if (authMode === 'login') {
           <h2>Login</h2>
 
           <label>Username</label>
-          <input
-            type="text"
-            [(ngModel)]="username"
-            placeholder="Enter username"
-          />
+          <input type="text" [(ngModel)]="username" placeholder="Enter username" />
 
           <label>Password</label>
-          <input
-            type="password"
-            [(ngModel)]="password"
-            placeholder="Enter password"
-          />
+          <input type="password" [(ngModel)]="password" placeholder="Enter password" />
 
-          <button class="primary-button" (click)="login()">Login</button>
+          <div class="button-row">
+            <button class="primary-button" (click)="login()">Login</button>
+            <button class="secondary-button" type="button" (click)="showRegister()">Sign Up</button>
+          </div>
 
           <div class="result">
             <h3>Login Result:</h3>
@@ -100,50 +53,27 @@
           <h2>Create Account</h2>
 
           <label>Username</label>
-          <input
-            type="text"
-            [(ngModel)]="registerUsername"
-            placeholder="Choose a username"
-          />
+          <input type="text" [(ngModel)]="registerUsername" placeholder="Choose a username" />
 
           <label>Email</label>
-          <input
-            type="email"
-            [(ngModel)]="registerEmail"
-            placeholder="Enter email"
-          />
+          <input type="email" [(ngModel)]="registerEmail" placeholder="Enter email" />
 
           <label>First Name</label>
-          <input
-            type="text"
-            [(ngModel)]="registerFirstName"
-            placeholder="Enter first name"
-          />
+          <input type="text" [(ngModel)]="registerFirstName" placeholder="Enter first name" />
 
           <label>Last Name</label>
-          <input
-            type="text"
-            [(ngModel)]="registerLastName"
-            placeholder="Enter last name"
-          />
+          <input type="text" [(ngModel)]="registerLastName" placeholder="Enter last name" />
 
           <label>Password</label>
-          <input
-            type="password"
-            [(ngModel)]="registerPassword"
-            placeholder="Create password"
-          />
+          <input type="password" [(ngModel)]="registerPassword" placeholder="Create password" />
 
           <label>Confirm Password</label>
-          <input
-            type="password"
-            [(ngModel)]="registerConfirmPassword"
-            placeholder="Confirm password"
-          />
+          <input type="password" [(ngModel)]="registerConfirmPassword" placeholder="Confirm password" />
 
-          <button class="primary-button" (click)="register()">
-            Create Account
-          </button>
+          <div class="button-row">
+            <button class="primary-button" (click)="register()">Create Account</button>
+            <button class="secondary-button" type="button" (click)="showLogin()">Back to Login</button>
+          </div>
 
           <div class="result">
             <h3>Register Result:</h3>
@@ -157,13 +87,20 @@
       @if (activePage === 'dashboard') {
         <section class="card hero-card">
           <h2>Welcome to your dashboard</h2>
-          <p>
-            You are logged in successfully. Use the navigation above to manage
-            departments, researchers, conferences, and papers.
-          </p>
+          <p>You are logged in as <strong>{{ currentUser?.username || 'user' }}</strong>.</p>
+          @if (isAdmin()) {
+            <p class="admin-badge">Admin mode enabled. You can manage departments, conferences, researchers, and papers.</p>
+          }
         </section>
 
         <section class="dashboard-grid">
+          @if (isAdmin()) {
+            <div class="summary-card admin-summary" (click)="goToPage('admin')">
+              <h3>Admin Dashboard</h3>
+              <p>Create, edit, and delete platform data.</p>
+            </div>
+          }
+
           <div class="summary-card" (click)="goToPage('departments')">
             <h3>Departments</h3>
             <p>View academic departments.</p>
@@ -171,7 +108,7 @@
 
           <div class="summary-card" (click)="goToPage('researchers')">
             <h3>Researchers</h3>
-            <p>Browse researcher profiles.</p>
+            <p>Browse and manage researcher profiles.</p>
           </div>
 
           <div class="summary-card" (click)="goToPage('conferences')">
@@ -181,7 +118,33 @@
 
           <div class="summary-card" (click)="goToPage('papers')">
             <h3>Papers</h3>
-            <p>View submitted research papers.</p>
+            <p>View and manage submitted research papers.</p>
+          </div>
+        </section>
+      }
+
+      @if (activePage === 'admin' && isAdmin()) {
+        <section class="card hero-card">
+          <h2>Admin Dashboard</h2>
+          <p>Use these shortcuts to manage each section. The backend still decides whether each request is allowed.</p>
+        </section>
+
+        <section class="dashboard-grid">
+          <div class="summary-card admin-summary" (click)="goToPage('departments')">
+            <h3>Manage Departments</h3>
+            <p>Add, edit, or delete departments.</p>
+          </div>
+          <div class="summary-card admin-summary" (click)="goToPage('conferences')">
+            <h3>Manage Conferences</h3>
+            <p>Add, edit, or delete conferences.</p>
+          </div>
+          <div class="summary-card admin-summary" (click)="goToPage('researchers')">
+            <h3>Manage Researchers</h3>
+            <p>Edit or remove researcher profiles.</p>
+          </div>
+          <div class="summary-card admin-summary" (click)="goToPage('papers')">
+            <h3>Manage Papers</h3>
+            <p>Edit or remove submitted papers.</p>
           </div>
         </section>
       }
@@ -193,20 +156,55 @@
               <h2>Departments</h2>
               <p>Load and view departments from the Django backend.</p>
             </div>
-
-            <button class="primary-button" (click)="loadDepartments()">
-              Load Departments
-            </button>
+            <button class="primary-button" (click)="loadDepartments()">Refresh Departments</button>
           </div>
 
           <p>{{ departmentsMessage }}</p>
+
+          @if (isAdmin()) {
+            <div class="notice-box"><strong>Admin:</strong> You can create, update, and delete departments.</div>
+            <button class="secondary-button" (click)="toggleDepartmentForm()">
+              @if (showDepartmentForm) { Hide Department Form } @else { Add Department }
+            </button>
+
+            @if (showDepartmentForm) {
+              <div class="create-box">
+                <h3>@if (editingDepartmentId) { Edit Department } @else { Add Department }</h3>
+
+                <label>Name</label>
+                <input type="text" [(ngModel)]="departmentName" placeholder="Department name" />
+
+                <label>Code</label>
+                <input type="text" [(ngModel)]="departmentCode" placeholder="Department code" />
+
+                <label>Description</label>
+                <textarea [(ngModel)]="departmentDescription" placeholder="Department description"></textarea>
+
+                <div class="button-row">
+                  <button class="primary-button" (click)="saveDepartment()">
+                    @if (editingDepartmentId) { Update Department } @else { Create Department }
+                  </button>
+                  <button class="secondary-button" (click)="cancelDepartmentForm()">Cancel</button>
+                </div>
+
+                <div class="result"><pre>{{ departmentFormMessage }}</pre></div>
+              </div>
+            }
+          }
 
           @if (departments.length > 0) {
             <div class="department-list">
               @for (department of departments; track department.id) {
                 <div class="department-card">
                   <h3>{{ department.name }}</h3>
-                  <p>{{ department.description }}</p>
+                  <p>{{ department.description || 'No description available.' }}</p>
+
+                  @if (isAdmin()) {
+                    <div class="action-row">
+                      <button class="small-button" (click)="editDepartment(department)">Edit</button>
+                      <button class="small-button danger-button" (click)="deleteDepartment(department)">Delete</button>
+                    </div>
+                  }
                 </div>
               }
             </div>
@@ -219,115 +217,102 @@
           <div class="section-header">
             <div>
               <h2>Researchers</h2>
-              <p>Load and view researcher profiles from the Django backend.</p>
+              <p>Load, create, update, and delete researcher profiles.</p>
             </div>
-
-            <button class="primary-button" (click)="loadResearchers()">
-              Load Researchers
-            </button>
+            <button class="primary-button" (click)="loadResearchers()">Refresh Researchers</button>
           </div>
 
           <p>{{ researchersMessage }}</p>
 
-<div class="notice-box">
-  <strong>Note:</strong>
-  Logged-in users can create their own researcher profile. Admins can manage all researcher profiles.
-</div>
+          <div class="notice-box">
+            <strong>Note:</strong> Logged-in users can create and manage their own researcher profile. Admins can manage all researcher profiles.
+          </div>
 
-<button class="secondary-button" (click)="toggleResearcherForm()">
-  @if (showResearcherForm) {
-    Hide Researcher Form
-  } @else {
-    Create My Researcher Profile
-  }
-</button>
-
-@if (showResearcherForm) {
-  <div class="create-box">
-    <h3>Create Researcher Profile</h3>
-
-            <label>First Name</label>
-            <input
-              type="text"
-              [(ngModel)]="researcherFirstName"
-              placeholder="Enter first name"
-            />
-
-            <label>Last Name</label>
-            <input
-              type="text"
-              [(ngModel)]="researcherLastName"
-              placeholder="Enter last name"
-            />
-
-            <label>Email</label>
-            <input
-              type="email"
-              [(ngModel)]="researcherEmail"
-              placeholder="Enter email"
-            />
-
-            <label>Academic Rank</label>
-            <select [(ngModel)]="researcherAcademicRank">
-              <option value="">Select academic rank</option>
-              <option value="student">Student</option>
-              <option value="lecturer">Lecturer</option>
-              <option value="assistant">Assistant Professor</option>
-              <option value="associate">Associate Professor</option>
-              <option value="professor">Professor</option>
-            </select>
-
-            <label>Department</label>
-            <select [(ngModel)]="researcherDepartment">
-              <option value="">Select department</option>
-
-              @for (department of departments; track department.id) {
-                <option [value]="department.id">
-                  {{ department.name }}
-                </option>
-              }
-            </select>
-
-            <label>Biography</label>
-            <textarea
-              [(ngModel)]="researcherBiography"
-              placeholder="Write a short biography"
-            ></textarea>
-
-            <button class="primary-button" (click)="createResearcherProfile()">
-              Create Researcher Profile
+          @if (!hasCurrentUserResearcherProfile() || editingResearcherId || isAdmin()) {
+            <button class="secondary-button" (click)="toggleResearcherForm()">
+              @if (showResearcherForm) { Hide Researcher Form } @else { Create My Researcher Profile }
             </button>
+          } @else {
+            <div class="notice-box">
+              You already have a researcher profile. Use the Edit button on your profile to update it.
+            </div>
+          }
 
-                <button class="secondary-button" (click)="cancelResearcherForm()">
-      Cancel
-    </button>
+          @if (showResearcherForm) {
+            <div class="create-box">
+              <h3>@if (editingResearcherId) { Edit Researcher Profile } @else { Create Researcher Profile }</h3>
 
-    <div class="result">
-      <pre>{{ createResearcherMessage }}</pre>
-    </div>
-  </div>
-}
+              <label>First Name</label>
+              <input type="text" [(ngModel)]="researcherFirstName" placeholder="Enter first name" />
+
+              <label>Last Name</label>
+              <input type="text" [(ngModel)]="researcherLastName" placeholder="Enter last name" />
+
+              <label>Email</label>
+              <input type="email" [(ngModel)]="researcherEmail" placeholder="Enter email" />
+
+              <label>Academic Rank</label>
+              <select [(ngModel)]="researcherAcademicRank">
+                <option value="">Select academic rank</option>
+                <option value="student">Graduate Student</option>
+                <option value="lecturer">Lecturer</option>
+                <option value="assistant">Assistant Professor</option>
+                <option value="associate">Associate Professor</option>
+                <option value="professor">Professor</option>
+              </select>
+
+              <label>Department</label>
+              <select [(ngModel)]="researcherDepartment">
+                <option value="">Select department</option>
+                @for (department of departments; track department.id) {
+                  <option [value]="department.id">{{ department.name }}</option>
+                }
+              </select>
+
+              <label>Biography</label>
+              <textarea [(ngModel)]="researcherBiography" placeholder="Write a short biography"></textarea>
+
+              <label>Profile Picture</label>
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onResearcherProfilePictureSelected($event)"
+              />
+
+              <label>CV Document</label>
+              <input
+                type="file"
+                accept="application/pdf"
+                (change)="onResearcherCvSelected($event)"
+              />
+              
+              <div class="button-row">
+                <button class="primary-button" (click)="saveResearcherProfile()">
+                  @if (editingResearcherId) { Update Researcher Profile } @else { Create Researcher Profile }
+                </button>
+                <button class="secondary-button" (click)="cancelResearcherForm()">Cancel</button>
+              </div>
+
+              <div class="result"><pre>{{ researcherFormMessage }}</pre></div>
+            </div>
+          }
 
           @if (researchers.length > 0) {
             <div class="researcher-list">
               @for (researcher of researchers; track researcher.id) {
                 <div class="researcher-card">
                   <h3>{{ researcher.first_name }} {{ researcher.last_name }}</h3>
+                  <p><strong>Email:</strong> {{ researcher.email }}</p>
+                  <p><strong>Academic Rank:</strong> {{ researcher.academic_rank || 'Not provided' }}</p>
+                  <p><strong>Department:</strong> {{ getDepartmentName(researcher.department) }}</p>
+                  <p><strong>Biography:</strong> {{ researcher.biography || 'No biography available.' }}</p>
 
-                  <p>
-                    <strong>Email:</strong>
-                    {{ researcher.email }}
-                  </p>
-
-                  <p>
-                    <strong>Academic Rank:</strong>
-                    {{ researcher.academic_rank || 'Not provided' }}
-                  </p>
-
-                  <p>
-                    <strong>Department:</strong>
-                    {{ getDepartmentName(researcher.department) }}
-                  </p>
+                  @if (canManageResearcher(researcher)) {
+                    <div class="action-row">
+                      <button class="small-button" (click)="editResearcher(researcher)">Edit</button>
+                      <button class="small-button danger-button" (click)="deleteResearcher(researcher)">Delete</button>
+                    </div>
+                  }
                 </div>
               }
             </div>
@@ -342,39 +327,64 @@
               <h2>Conferences</h2>
               <p>Load and view conferences from the Django backend.</p>
             </div>
-
-            <button class="primary-button" (click)="loadConferences()">
-              Load Conferences
-            </button>
+            <button class="primary-button" (click)="loadConferences()">Refresh Conferences</button>
           </div>
 
           <p>{{ conferencesMessage }}</p>
+
+          @if (isAdmin()) {
+            <div class="notice-box"><strong>Admin:</strong> You can create, update, and delete conferences.</div>
+            <button class="secondary-button" (click)="toggleConferenceForm()">
+              @if (showConferenceForm) { Hide Conference Form } @else { Add Conference }
+            </button>
+
+            @if (showConferenceForm) {
+              <div class="create-box">
+                <h3>@if (editingConferenceId) { Edit Conference } @else { Add Conference }</h3>
+
+                <label>Name</label>
+                <input type="text" [(ngModel)]="conferenceName" placeholder="Conference name" />
+
+                <label>Location</label>
+                <input type="text" [(ngModel)]="conferenceLocation" placeholder="Conference location" />
+
+                <label>Start Date</label>
+                <input type="date" [(ngModel)]="conferenceStartDate" />
+
+                <label>End Date</label>
+                <input type="date" [(ngModel)]="conferenceEndDate" />
+
+                <label>Description</label>
+                <textarea [(ngModel)]="conferenceDescription" placeholder="Conference description"></textarea>
+
+                <div class="button-row">
+                  <button class="primary-button" (click)="saveConference()">
+                    @if (editingConferenceId) { Update Conference } @else { Create Conference }
+                  </button>
+                  <button class="secondary-button" (click)="cancelConferenceForm()">Cancel</button>
+                </div>
+
+                <div class="result"><pre>{{ conferenceFormMessage }}</pre></div>
+              </div>
+            }
+          }
 
           @if (conferences.length > 0) {
             <div class="conference-list">
               @for (conference of conferences; track conference.id) {
                 <div class="conference-card">
                   <h3>{{ conference.name }}</h3>
+                  <p><strong>Location:</strong> {{ conference.location || 'Not provided' }}</p>
+                  <p><strong>Start Date:</strong> {{ conference.start_date || 'Not provided' }}</p>
+                  <p><strong>End Date:</strong> {{ conference.end_date || 'Not provided' }}</p>
+                  <p><strong>Description:</strong> {{ conference.description || 'No description available.' }}</p>
 
-                  <p>
-                    <strong>Location:</strong>
-                    {{ conference.location || 'Not provided' }}
-                  </p>
-
-                  <p>
-                    <strong>Start Date:</strong>
-                    {{ conference.start_date || 'Not provided' }}
-                  </p>
-
-                  <p>
-                    <strong>End Date:</strong>
-                    {{ conference.end_date || 'Not provided' }}
-                  </p>
-
-                  <p>
-                    <strong>Description:</strong>
-                    {{ conference.description || 'No description available.' }}
-                  </p>
+                  @if (isAdmin()) {
+                    <div class="action-row">
+                      <button class="small-button" (click)="editConference(conference)">Edit</button>
+                      <button class="small-button danger-button" (click)="deleteConference(conference)">Delete</button>
+                    </div>
+                  }
                 </div>
               }
             </div>
@@ -387,113 +397,99 @@
           <div class="section-header">
             <div>
               <h2>Papers</h2>
-              <p>Load, view, and create submitted research papers.</p>
+              <p>Load, view, create, update, and delete submitted research papers.</p>
             </div>
-
-            <button class="primary-button" (click)="loadPapers()">
-              Load Papers
-            </button>
+            <button class="primary-button" (click)="loadPapers()">Refresh Papers</button>
           </div>
 
           <p>{{ papersMessage }}</p>
 
-          <div class="create-box">
-            <h3>Create Paper</h3>
-
-            <label>Title</label>
-            <input
-              type="text"
-              [(ngModel)]="paperTitle"
-              placeholder="Enter paper title"
-            />
-
-            <label>Abstract</label>
-            <textarea
-              [(ngModel)]="paperAbstract"
-              placeholder="Write the paper abstract"
-            ></textarea>
-
-            <label>Keywords</label>
-            <input
-              type="text"
-              [(ngModel)]="paperKeywords"
-              placeholder="Example: AI, Django, Research"
-            />
-            <label>Corresponding Email</label>
-<input
-  type="email"
-  [(ngModel)]="paperCorrespondingEmail"
-  placeholder="Enter corresponding author email"
-/>
-
-            <label>Conference</label>
-            <select [(ngModel)]="paperConference">
-              <option value="">Select conference</option>
-
-              @for (conference of conferences; track conference.id) {
-                <option [value]="conference.id">
-                  {{ conference.name }}
-                </option>
-              }
-            </select>
-
-            <label>Publication Date</label>
-            <input
-              type="date"
-              [(ngModel)]="paperPublicationDate"
-            />
-
-            <label>Status</label>
-            <select [(ngModel)]="paperStatus">
-              <option value="draft">Draft</option>
-              <option value="submitted">Submitted</option>
-              <option value="accepted">Accepted</option>
-              <option value="rejected">Rejected</option>
-            </select>
-
-            <button class="primary-button" (click)="createPaper()">
-              Create Paper
-            </button>
-
-            <div class="result">
-              <pre>{{ createPaperMessage }}</pre>
-            </div>
+          <div class="notice-box">
+            <strong>Note:</strong> Authors can manage their own papers. Admins can manage all papers.
           </div>
+
+          <button class="secondary-button" (click)="togglePaperForm()">
+            @if (showPaperForm) { Hide Paper Form } @else { Create Paper }
+          </button>
+
+          @if (showPaperForm) {
+            <div class="create-box">
+              <h3>@if (editingPaperId) { Edit Paper } @else { Create Paper }</h3>
+
+              <label>Title</label>
+              <input type="text" [(ngModel)]="paperTitle" placeholder="Enter paper title" />
+
+              <label>Abstract</label>
+              <textarea [(ngModel)]="paperAbstract" placeholder="Write the paper abstract"></textarea>
+
+              <label>Keywords</label>
+              <input type="text" [(ngModel)]="paperKeywords" placeholder="Example: AI, Django, Research" />
+
+              <label>Corresponding Email</label>
+              <input type="email" [(ngModel)]="paperCorrespondingEmail" placeholder="Enter corresponding author email" />
+
+              <label>Conference</label>
+              <select [(ngModel)]="paperConference">
+                <option value="">Select conference</option>
+                @for (conference of conferences; track conference.id) {
+                  <option [value]="conference.id">{{ conference.name }}</option>
+                }
+              </select>
+
+              <label>Publication Date</label>
+              <input type="date" [(ngModel)]="paperPublicationDate" />
+
+              <label>Status</label>
+              <select [(ngModel)]="paperStatus">
+                <option value="draft">Draft</option>
+                <option value="submitted">Submitted</option>
+                <option value="accepted">Accepted</option>
+                <option value="rejected">Rejected</option>
+              </select>
+
+              <label>Paper Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onPaperImageSelected($event)"
+              />
+
+              <label>Paper PDF</label>
+              <input
+                type="file"
+                accept="application/pdf"
+                (change)="onPaperPdfSelected($event)"
+              />
+
+              <div class="button-row">
+                <button class="primary-button" (click)="savePaper()">
+                  @if (editingPaperId) { Update Paper } @else { Create Paper }
+                </button>
+                <button class="secondary-button" (click)="cancelPaperForm()">Cancel</button>
+              </div>
+
+              <div class="result"><pre>{{ paperFormMessage }}</pre></div>
+            </div>
+          }
 
           @if (papers.length > 0) {
             <div class="paper-list">
               @for (paper of papers; track paper.id) {
                 <div class="paper-card">
                   <h3>{{ paper.title }}</h3>
+                  <p><strong>Abstract:</strong> {{ paper.abstract || 'No abstract available.' }}</p>
+                  <p><strong>Keywords:</strong> {{ paper.keywords || 'Not provided' }}</p>
+                  <p><strong>Corresponding Email:</strong> {{ paper.corresponding_email || 'Not provided' }}</p>
+                  <p><strong>Status:</strong> {{ paper.status || 'Not provided' }}</p>
+                  <p><strong>Publication Date:</strong> {{ paper.publication_date || 'Not provided' }}</p>
+                  <p><strong>Conference:</strong> {{ getConferenceName(paper.conference) }}</p>
 
-                  <p>
-                    <strong>Abstract:</strong>
-                    {{ paper.abstract || 'No abstract available.' }}
-                  </p>
-
-                  <p>
-                    <strong>Keywords:</strong>
-                    {{ paper.keywords || 'Not provided' }}
-                  </p>
-
-                  <p>
-                    <strong>Status:</strong>
-                    {{ paper.status || 'Not provided' }}
-                  </p>
-
-                  <p>
-                    <strong>Publication Date:</strong>
-                    {{ paper.publication_date || 'Not provided' }}
-                  </p>
-
-                  <p>
-                    <strong>Conference:</strong>
-                    {{ getConferenceName(paper.conference) }}
-                  </p>
-                  <div class="result">
-  <strong>Raw paper data for testing:</strong>
-  <pre>{{ paper | json }}</pre>
-</div>
+                  @if (canManagePaper(paper)) {
+                    <div class="action-row">
+                      <button class="small-button" (click)="editPaper(paper)">Edit</button>
+                      <button class="small-button danger-button" (click)="deletePaper(paper)">Delete</button>
+                    </div>
+                  }
                 </div>
               }
             </div>
