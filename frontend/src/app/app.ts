@@ -96,6 +96,7 @@ export class App {
   paperSearch = '';
   paperStatusFilter = '';
   paperConferenceFilter = '';
+  paperAuthorIds: string[] = [];
 
   constructor(
     private apiService: ApiService,
@@ -739,7 +740,15 @@ export class App {
     paperData.append('abstract', this.paperAbstract);
     paperData.append('keywords', this.paperKeywords);
     paperData.append('corresponding_email', this.paperCorrespondingEmail);
-    paperData.append('status', this.paperStatus);
+    if (this.isAdmin()) {
+      paperData.append('status', this.paperStatus);
+    }
+    
+    if (this.isAdmin() && this.editingPaperId) {
+      this.paperAuthorIds.forEach((authorId) => {
+        paperData.append('authors', authorId);
+      });
+    }
 
     if (this.paperConference) {
       paperData.append('conference', this.paperConference);
@@ -785,6 +794,15 @@ export class App {
     this.paperConference = this.extractId(paper.conference);
     this.paperPublicationDate = paper.publication_date || '';
     this.paperStatus = paper.status || 'draft';
+
+    const authors = paper.authors || [];
+
+    this.paperAuthorIds = Array.isArray(authors)
+      ? authors.map((author: any) =>
+          typeof author === 'object' ? String(author.id) : String(author)
+        )
+      : [];
+
     this.paperFormMessage = 'Editing paper.';
     this.showPaperForm = true;
   }
@@ -813,6 +831,21 @@ export class App {
     }
   }
 
+  togglePaperAuthor(researcherId: number, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const id = String(researcherId);
+
+    if (input.checked) {
+      if (!this.paperAuthorIds.includes(id)) {
+        this.paperAuthorIds.push(id);
+      }
+    } else {
+      this.paperAuthorIds = this.paperAuthorIds.filter(
+        (authorId) => authorId !== id
+      );
+    }
+  }
+
   cancelPaperForm(resetMessage = true) {
     this.showPaperForm = false;
     this.editingPaperId = null;
@@ -823,6 +856,7 @@ export class App {
     this.paperConference = '';
     this.paperPublicationDate = '';
     this.paperStatus = 'draft';
+    this.paperAuthorIds = [];
     this.paperImageFile = null;
     this.paperPdfFile = null;
 

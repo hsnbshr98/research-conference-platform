@@ -580,13 +580,32 @@
               <label>Publication Date</label>
               <input type="date" [(ngModel)]="paperPublicationDate" />
 
-              <label>Status</label>
-              <select [(ngModel)]="paperStatus">
-                <option value="draft">Draft</option>
-                <option value="submitted">Submitted</option>
-                <option value="accepted">Accepted</option>
-                <option value="rejected">Rejected</option>
-              </select>
+              @if (isAdmin()) {
+                <label>Status</label>
+                <select [(ngModel)]="paperStatus">
+                  <option value="draft">Draft</option>
+                  <option value="submitted">Submitted</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="published">Published</option>
+                </select>
+              }
+
+              @if (isAdmin() && editingPaperId) {
+                <label>Authors</label>
+                <div class="checkbox-list">
+                  @for (researcher of researchers; track researcher.id) {
+                    <label class="checkbox-item">
+                      <input
+                        type="checkbox"
+                        [checked]="paperAuthorIds.includes('' + researcher.id)"
+                        (change)="togglePaperAuthor(researcher.id, $event)"
+                      />
+                      {{ researcher.first_name }} {{ researcher.last_name }}
+                    </label>
+                  }
+                </div>
+              }
 
               <label>Paper Image</label>
               <input
@@ -618,6 +637,7 @@
               @for (paper of filteredPapers; track paper.id) {
                 <div class="paper-card">
                   <h3>{{ paper.title }}</h3>
+                  <p><strong>Authors:</strong> {{ getResearcherNames(paper.authors) }}</p>
                   <p><strong>Abstract:</strong> {{ paper.abstract || 'No abstract available.' }}</p>
                   <p><strong>Keywords:</strong> {{ paper.keywords || 'Not provided' }}</p>
                   <p><strong>Corresponding Email:</strong> {{ paper.corresponding_email || 'Not provided' }}</p>

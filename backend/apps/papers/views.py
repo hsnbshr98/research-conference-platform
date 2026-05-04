@@ -18,8 +18,10 @@ class PaperViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """
-        Only users with a researcher profile can create papers.
-        The created paper is automatically linked to that researcher as an author.
+        Normal users can create papers only if they have a researcher profile.
+        The logged-in user's researcher profile is automatically added as the author.
+        Normal users cannot choose status or authors manually.
+        Admin users can create papers and choose status/authors from the request.
         """
 
         # Admin can create papers normally
@@ -27,7 +29,7 @@ class PaperViewSet(viewsets.ModelViewSet):
             serializer.save()
             return
 
-        # Normal users must have a linked researcher profile
+        # Normal users must have a researcher profile
         try:
             researcher = self.request.user.researcher_profile
         except Researcher.DoesNotExist:
@@ -35,10 +37,35 @@ class PaperViewSet(viewsets.ModelViewSet):
                 "You must create a researcher profile before creating papers."
             )
 
-        # Save the paper
-        paper = serializer.save()
+        # Force normal-user paper status to draft
+        # Even if the frontend/Postman sends accepted/rejected/published, it is ignored.
+        paper = serializer.save(status='draft')
 
-        # Strict rule:
-        # The normal user cannot choose random authors.
-        # The current user's researcher profile becomes the author.
+        # Force the current researcher as the only author
         paper.authors.set([researcher])
+
+    def perform_update(self, serializer):
+        """
+        Admin users can update all paper fields, including status and authors.
+        Normal users can update only paper information.
+        Normal users cannot change status or authors.
+        """
+
+        paper = self.get_object()
+
+        # Admin can update everything, including status and authors
+        if self.request.user.is_staff:
+            serializer.save()
+            return
+
+        # Save old protected values before update
+        old_status = paper.status
+        old_authors = list(paper.authors.all())
+
+        # Save allowed paper fields
+        updated_paper = serializer.save()
+
+        # Restore protected fields for normal users
+        updated_paper.status = old_status
+        updated_paper.save(update_fields=['status'])
+        updated_paper.authors.set(old_authors)
