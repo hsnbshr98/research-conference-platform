@@ -153,6 +153,13 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(138, 21, 56, 0.15);
 }
 
+.validation-error {
+  margin: 6px 0 0;
+  color: #9f1d1d;
+  font-size: 14px;
+  font-weight: bold;
+}
+
 .primary-button {
   margin-top: 20px;
   background-color: #8a1538;

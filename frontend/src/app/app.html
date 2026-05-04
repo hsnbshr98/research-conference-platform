@@ -28,20 +28,27 @@
   <main class="page">
     @if (!isLoggedIn()) {
       <section class="card auth-card">
-
         @if (authMode === 'login') {
           <h2>Login</h2>
 
-          <label>Username</label>
-          <input type="text" [(ngModel)]="username" placeholder="Enter username" />
+          <form [formGroup]="loginForm" (ngSubmit)="login()">
+            <label>Username</label>
+            <input type="text" formControlName="username" placeholder="Enter username" />
+            @if (isInvalid(loginForm, 'username')) {
+              <p class="validation-error">Username is required.</p>
+            }
 
-          <label>Password</label>
-          <input type="password" [(ngModel)]="password" placeholder="Enter password" />
+            <label>Password</label>
+            <input type="password" formControlName="password" placeholder="Enter password" />
+            @if (isInvalid(loginForm, 'password')) {
+              <p class="validation-error">Password is required.</p>
+            }
 
-          <div class="button-row">
-            <button class="primary-button" (click)="login()">Login</button>
-            <button class="secondary-button" type="button" (click)="showRegister()">Sign Up</button>
-          </div>
+            <div class="button-row">
+              <button class="primary-button" type="submit">Login</button>
+              <button class="secondary-button" type="button" (click)="showRegister()">Sign Up</button>
+            </div>
+          </form>
 
           <div class="result">
             <h3>Login Result:</h3>
@@ -52,28 +59,48 @@
         @if (authMode === 'register') {
           <h2>Create Account</h2>
 
-          <label>Username</label>
-          <input type="text" [(ngModel)]="registerUsername" placeholder="Choose a username" />
+          <form [formGroup]="registerForm" (ngSubmit)="register()">
+            <label>Username</label>
+            <input type="text" formControlName="username" placeholder="Choose a username" />
+            @if (isInvalid(registerForm, 'username')) {
+              <p class="validation-error">Username is required and must be at least 3 characters.</p>
+            }
 
-          <label>Email</label>
-          <input type="email" [(ngModel)]="registerEmail" placeholder="Enter email" />
+            <label>Email</label>
+            <input type="email" formControlName="email" placeholder="Enter email" />
+            @if (isInvalid(registerForm, 'email')) {
+              <p class="validation-error">Enter a valid email address.</p>
+            }
 
-          <label>First Name</label>
-          <input type="text" [(ngModel)]="registerFirstName" placeholder="Enter first name" />
+            <label>First Name</label>
+            <input type="text" formControlName="first_name" placeholder="Enter first name" />
+            @if (isInvalid(registerForm, 'first_name')) {
+              <p class="validation-error">First name is required.</p>
+            }
 
-          <label>Last Name</label>
-          <input type="text" [(ngModel)]="registerLastName" placeholder="Enter last name" />
+            <label>Last Name</label>
+            <input type="text" formControlName="last_name" placeholder="Enter last name" />
+            @if (isInvalid(registerForm, 'last_name')) {
+              <p class="validation-error">Last name is required.</p>
+            }
 
-          <label>Password</label>
-          <input type="password" [(ngModel)]="registerPassword" placeholder="Create password" />
+            <label>Password</label>
+            <input type="password" formControlName="password" placeholder="Create password" />
+            @if (isInvalid(registerForm, 'password')) {
+              <p class="validation-error">Password is required and must be at least 6 characters.</p>
+            }
 
-          <label>Confirm Password</label>
-          <input type="password" [(ngModel)]="registerConfirmPassword" placeholder="Confirm password" />
+            <label>Confirm Password</label>
+            <input type="password" formControlName="confirm_password" placeholder="Confirm password" />
+            @if (isInvalid(registerForm, 'confirm_password')) {
+              <p class="validation-error">Confirm password is required.</p>
+            }
 
-          <div class="button-row">
-            <button class="primary-button" (click)="register()">Create Account</button>
-            <button class="secondary-button" type="button" (click)="showLogin()">Back to Login</button>
-          </div>
+            <div class="button-row">
+              <button class="primary-button" type="submit">Create Account</button>
+              <button class="secondary-button" type="button" (click)="showLogin()">Back to Login</button>
+            </div>
+          </form>
 
           <div class="result">
             <h3>Register Result:</h3>

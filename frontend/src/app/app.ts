@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from './services/api.service';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 
 type Page = 'dashboard' | 'admin' | 'departments' | 'researchers' | 'conferences' | 'papers';
 
@@ -10,7 +11,7 @@ type AuthMode = 'login' | 'register';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -30,6 +31,9 @@ export class App {
 
   loginMessage = 'Please log in using your account.';
   registerMessage = 'Create a new account.';
+
+  loginForm: FormGroup;
+  registerForm: FormGroup;
 
   token = localStorage.getItem('token') || '';
   currentUser: any = this.readStoredUser();
@@ -91,7 +95,39 @@ export class App {
   paperStatusFilter = '';
   paperConferenceFilter = '';
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private apiService: ApiService,
+    private fb: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {
+    this.loginForm = this.fb.group({
+      username: ['', Validators.required],
+      password: ['', Validators.required]
+    });
+
+    this.registerForm = this.fb.group({
+      username: ['', [Validators.required, Validators.minLength(3)]],
+      email: ['', [Validators.required, Validators.email]],
+      first_name: ['', Validators.required],
+      last_name: ['', Validators.required],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      confirm_password: ['', Validators.required]
+    });
+
+    this.route.queryParamMap.subscribe((params) => {
+      const page = params.get('page') as Page | null;
+      const auth = params.get('auth') as AuthMode | null;
+
+      if (auth === 'login' || auth === 'register') {
+        this.authMode = auth;
+      }
+
+      if (page && this.isValidPage(page)) {
+        this.setActivePage(page);
+      }
+    });
+  }
 
   isLoggedIn(): boolean {
     return this.token !== '';
@@ -106,15 +142,41 @@ export class App {
     );
   }
 
+  isValidPage(page: string): page is Page {
+    return ['dashboard', 'admin', 'departments', 'researchers', 'conferences', 'papers'].includes(page);
+  }
+
+  isInvalid(form: FormGroup, field: string): boolean {
+    const control = form.get(field);
+    return Boolean(control && control.invalid && (control.dirty || control.touched));
+  }
+
   showLogin() {
     this.authMode = 'login';
+    this.router.navigate([], {
+      queryParams: { auth: 'login' },
+      queryParamsHandling: 'merge'
+    });
   }
 
   showRegister() {
     this.authMode = 'register';
+    this.router.navigate([], {
+      queryParams: { auth: 'register' },
+      queryParamsHandling: 'merge'
+    });
   }
 
   goToPage(page: Page) {
+    this.router.navigate([], {
+      queryParams: { page },
+      queryParamsHandling: 'merge'
+    });
+
+    this.setActivePage(page);
+  }
+
+  setActivePage(page: Page) {
     this.activePage = page;
 
     if (page === 'departments' && this.departments.length === 0) {
@@ -157,18 +219,26 @@ export class App {
   }
 
   login() {
-    this.apiService.login(this.username, this.password).subscribe({
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      this.loginMessage = 'Please enter both username and password.';
+      return;
+    }
+
+    const username = this.loginForm.value.username;
+    const password = this.loginForm.value.password;
+
+    this.apiService.login(username, password).subscribe({
       next: (response) => {
         this.token = response.token;
-        this.currentUser = response.user || { username: this.username };
+        this.currentUser = response.user || { username };
 
         localStorage.setItem('token', this.token);
         localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
 
         this.loginMessage = `Login successful. Welcome ${this.currentUser.username}.`;
-        this.username = '';
-        this.password = '';
-        this.activePage = 'dashboard';
+        this.loginForm.reset();
+        this.goToPage('dashboard');
       },
       error: (error) => {
         this.loginMessage = 'Login failed:\n' + this.formatError(error);
@@ -177,33 +247,37 @@ export class App {
   }
 
   register() {
+    if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
+      this.registerMessage = 'Please complete all required fields correctly.';
+      return;
+    }
+
+    if (this.registerForm.value.password !== this.registerForm.value.confirm_password) {
+      this.registerMessage = 'Passwords do not match.';
+      return;
+    }
+
     const userData = {
-      username: this.registerUsername,
-      email: this.registerEmail,
-      first_name: this.registerFirstName,
-      last_name: this.registerLastName,
-      password: this.registerPassword,
-      confirm_password: this.registerConfirmPassword
+      username: this.registerForm.value.username,
+      email: this.registerForm.value.email,
+      first_name: this.registerForm.value.first_name,
+      last_name: this.registerForm.value.last_name,
+      password: this.registerForm.value.password,
+      confirm_password: this.registerForm.value.confirm_password
     };
 
     this.apiService.register(userData).subscribe({
       next: (response) => {
         this.token = response.token;
-        this.currentUser = response.user || { username: this.registerUsername };
+        this.currentUser = response.user || { username: userData.username };
 
         localStorage.setItem('token', this.token);
         localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
 
         this.registerMessage = `Registration successful. Welcome ${this.currentUser.username}.`;
-
-        this.registerUsername = '';
-        this.registerEmail = '';
-        this.registerFirstName = '';
-        this.registerLastName = '';
-        this.registerPassword = '';
-        this.registerConfirmPassword = '';
-
-        this.activePage = 'dashboard';
+        this.registerForm.reset();
+        this.goToPage('dashboard');
       },
       error: (error) => {
         this.registerMessage = 'Registration failed:\n' + this.formatError(error);
