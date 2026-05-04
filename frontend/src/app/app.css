@@ -207,6 +207,56 @@ textarea:focus {
   border-radius: 10px;
 }
 
+.checkbox-list {
+  padding: 12px;
+  border: 1px solid #d6b5bc;
+  border-radius: 9px;
+  background: white;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+  font-weight: normal;
+}
+
+.checkbox-item input {
+  width: auto;
+}
+
+.researcher-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.researcher-header h3 {
+  margin: 0;
+}
+
+.researcher-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ead6da;
+  background: #f1e3e6;
+  flex-shrink: 0;
+}
+
+.placeholder-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8a1538;
+  font-weight: bold;
+}
+
 pre {
   white-space: pre-wrap;
   font-size: 15px;

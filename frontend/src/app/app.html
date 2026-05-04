@@ -361,7 +361,21 @@
             <div class="researcher-list">
               @for (researcher of filteredResearchers; track researcher.id) {
                 <div class="researcher-card">
-                  <h3>{{ researcher.first_name }} {{ researcher.last_name }}</h3>
+                  <div class="researcher-header">
+                    @if (researcher.profile_picture) {
+                      <img
+                        class="researcher-avatar"
+                        [src]="getMediaUrl(researcher.profile_picture)"
+                        alt="Researcher profile picture"
+                      />
+                    } @else {
+                      <div class="researcher-avatar placeholder-avatar">
+                        {{ getInitials(researcher.first_name, researcher.last_name) }}
+                      </div>
+                    }
+
+                    <h3>{{ researcher.first_name }} {{ researcher.last_name }}</h3>
+                  </div>
                   <p><strong>Email:</strong> {{ researcher.email }}</p>
                   <p><strong>Academic Rank:</strong> {{ getAcademicRankLabel(researcher.academic_rank) }}</p>
                   <p><strong>Department:</strong> {{ getDepartmentName(researcher.department) }}</p>
@@ -423,6 +437,27 @@
                 <label>End Date</label>
                 <input type="date" [(ngModel)]="conferenceEndDate" />
 
+                <label>Contact Email</label>
+                <input
+                  type="email"
+                  [(ngModel)]="conferenceContactEmail"
+                  placeholder="Conference contact email"
+                />
+
+                <label>Organizers</label>
+                <div class="checkbox-list">
+                  @for (researcher of researchers; track researcher.id) {
+                    <label class="checkbox-item">
+                      <input
+                        type="checkbox"
+                        [checked]="conferenceOrganizerIds.includes('' + researcher.id)"
+                        (change)="toggleConferenceOrganizer(researcher.id, $event)"
+                      />
+                      {{ researcher.first_name }} {{ researcher.last_name }}
+                    </label>
+                  }
+                </div>
+
                 <label>Description</label>
                 <textarea [(ngModel)]="conferenceDescription" placeholder="Conference description"></textarea>
 
@@ -446,6 +481,7 @@
                   <p><strong>Location:</strong> {{ conference.location || 'Not provided' }}</p>
                   <p><strong>Start Date:</strong> {{ conference.start_date || 'Not provided' }}</p>
                   <p><strong>End Date:</strong> {{ conference.end_date || 'Not provided' }}</p>
+                  <p><strong>Organizers:</strong> {{ getResearcherNames(conference.organizers) }}</p>
                   <p><strong>Description:</strong> {{ conference.description || 'No description available.' }}</p>
 
                   <div class="action-row">

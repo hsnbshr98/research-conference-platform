@@ -75,6 +75,8 @@ export class App {
   conferenceDescription = '';
   editingConferenceId: number | null = null;
   conferenceFormMessage = 'Admins can create, update, and delete conferences.';
+  conferenceContactEmail = '';
+  conferenceOrganizerIds: string[] = [];
   showConferenceForm = false;
 
   papers: any[] = [];
@@ -555,13 +557,23 @@ export class App {
     });
   }
 
+  onConferenceOrganizersSelected(event: Event) {
+    const select = event.target as HTMLSelectElement;
+
+    this.conferenceOrganizerIds = Array.from(select.selectedOptions).map(
+      (option) => option.value
+    );
+  }
+
   saveConference() {
     const conferenceData = {
       name: this.conferenceName,
       location: this.conferenceLocation,
       start_date: this.conferenceStartDate,
       end_date: this.conferenceEndDate,
-      description: this.conferenceDescription
+      contact_email: this.conferenceContactEmail,
+      description: this.conferenceDescription,
+      organizers: this.conferenceOrganizerIds
     };
 
     const request = this.editingConferenceId
@@ -589,7 +601,16 @@ export class App {
     this.conferenceLocation = conference.location || '';
     this.conferenceStartDate = conference.start_date || '';
     this.conferenceEndDate = conference.end_date || '';
+    this.conferenceContactEmail = conference.contact_email || '';
     this.conferenceDescription = conference.description || '';
+
+    const organizers = conference.organizers || [];
+    this.conferenceOrganizerIds = Array.isArray(organizers)
+      ? organizers.map((organizer: any) =>
+          typeof organizer === 'object' ? String(organizer.id) : String(organizer)
+        )
+      : [];
+
     this.conferenceFormMessage = 'Editing conference.';
     this.showConferenceForm = true;
   }
@@ -625,7 +646,9 @@ export class App {
     this.conferenceLocation = '';
     this.conferenceStartDate = '';
     this.conferenceEndDate = '';
+    this.conferenceContactEmail = '';
     this.conferenceDescription = '';
+    this.conferenceOrganizerIds = [];
 
     if (resetMessage) {
       this.conferenceFormMessage = 'Admins can create, update, and delete conferences.';
@@ -1008,6 +1031,51 @@ export class App {
     });
   }
 
+  toggleConferenceOrganizer(researcherId: number, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const id = String(researcherId);
+
+    if (input.checked) {
+      if (!this.conferenceOrganizerIds.includes(id)) {
+        this.conferenceOrganizerIds.push(id);
+      }
+    } else {
+      this.conferenceOrganizerIds = this.conferenceOrganizerIds.filter(
+        (organizerId) => organizerId !== id
+      );
+    }
+  }
+
+  getResearcherNames(researcherValues: any): string {
+    if (!researcherValues) {
+      return 'Not provided';
+    }
+
+    const researcherList = Array.isArray(researcherValues)
+      ? researcherValues
+      : [researcherValues];
+
+    const names = researcherList.map((researcherValue) => {
+      const researcherId = this.extractId(researcherValue);
+
+      const researcher = this.researchers.find(
+        (item) => String(item.id) === String(researcherId)
+      );
+
+      if (researcher) {
+        return `${researcher.first_name} ${researcher.last_name}`;
+      }
+
+      if (typeof researcherValue === 'object') {
+        return `${researcherValue.first_name || ''} ${researcherValue.last_name || ''}`.trim();
+      }
+
+      return '';
+    }).filter(Boolean);
+
+    return names.length > 0 ? names.join(', ') : 'Not provided';
+  }
+
   getAcademicRankLabel(rank: string): string {
     const ranks: any = {
       student: 'Graduate Student',
@@ -1018,6 +1086,25 @@ export class App {
     };
 
     return ranks[rank] || rank || 'Not provided';
+  }
+
+  getMediaUrl(filePath: string): string {
+    if (!filePath) {
+      return '';
+    }
+
+    if (filePath.startsWith('http')) {
+      return filePath;
+    }
+
+    return `http://127.0.0.1:8000${filePath}`;
+  }
+
+  getInitials(firstName: string, lastName: string): string {
+    const firstInitial = firstName ? firstName.charAt(0).toUpperCase() : '';
+    const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
+
+    return `${firstInitial}${lastInitial}` || 'R';
   }
 
   get filteredPapers(): any[] {
